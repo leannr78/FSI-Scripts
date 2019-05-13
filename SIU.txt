@@ -1,0 +1,34 @@
+;  subtracting 2 hrs from start dt tm
+   set st_dt_tm_str = oen_reply->SCHEDULE_GROUP [1]->SCH->appt_tm_quant [1]->start_dt_tm
+   set ymd_sub = substring(1,8,st_dt_tm_str)
+   set hh_sub = substring(9,2, st_dt_tm_str)
+   set ms_sub = substring(11,4,st_dt_tm_str)
+   set hh_int = cnvtreal(hh_sub)
+   set hh_int = hh_int - 2
+   set hh_sub = cnvtstring(hh_int)
+   set hh_int = size(hh_sub, 1)
+   if(hh_int = 1)
+      set st_dt_tm_str = build(ymd_sub,"0",hh_sub,ms_sub)
+   else
+      set st_dt_tm_str = build(ymd_sub,hh_sub,ms_sub)
+   endif 
+
+   set oen_reply->SCHEDULE_GROUP [1]->SCH->appt_tm_quant [1]->start_dt_tm = st_dt_tm_str
+
+;  subtracting 2 hrs from end dt tm
+   set en_dt_tm_str = oen_reply->SCHEDULE_GROUP [1]->SCH->appt_tm_quant [1]->end_dt_tm
+   set ymd_sub = substring(1,8,en_dt_tm_str)
+   set hh_sub = substring(9,2, en_dt_tm_str)
+   set ms_sub = substring(11,4,en_dt_tm_str)
+   set hh_int = cnvtreal(hh_sub)
+   set hh_int = hh_int - 2
+   set hh_sub = cnvtstring(hh_int)
+   set hh_int = size(hh_sub, 1)
+   if(hh_int = 1)
+      set en_dt_tm_str = build(ymd_sub,"0",hh_sub,ms_sub)
+   else 
+      set en_dt_tm_str = build(ymd_sub,hh_sub,ms_sub)
+   endif 
+
+   set oen_reply->SCHEDULE_GROUP [1]->SCH->appt_tm_quant [1]->end_dt_tm = en_dt_tm_str
+endif

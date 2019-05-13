@@ -1,0 +1,16 @@
+ SET event_disp = uar_get_code_display (request->event_cd )
+  IF ((request->subtype = "POWERFORMS" ) AND (request->stype = "POWERFORMS" )
+  	AND (event_disp != "Form-Point of Care Gastric pH" )
+ 	AND (event_disp != "Form-Point of Care Urine Pregnancy" )
+ 	AND (event_disp != "Form-Point of Care Hemoccult" )
+ 	AND (event_disp != "Form-Point of Care Urine Dip-Chemstrips" )
+ 	AND (event_disp != "Form-Point of Care Urine Dip-Multistix" )
+ 	AND (event_disp != "Point of Care Gastric pH" )
+ 	AND (event_disp != "Urine Dipstick POC" )
+;	AND (EVENT_DISP != "Form-Transfusion Reaction Report" )  ;c13805 8/3/16
+	AND (EVENT_DISP != "Form-Point of Care Hemoglobin" )  ;c13805 8/3/16
+	AND (EVENT_DISP != "Point of Care Hemoglobin text" )  ;c13805 8/3/16
+	AND (EVENT_DISP != "Point of Care Hemoglobin Form" )  ;c13805 8/3/16
+	AND (EVENT_DISP != "Point of Care Hemoglobin" )  ;c13805 8/3/16
+  )
+  SET reply->status_data.status = "Z"
