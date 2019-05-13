@@ -1,0 +1,127 @@
+/*
+ *  ---------------------------------------------------------------------------------------------
+ *  Script Name:  rt_chargesout_modobj
+ *  Description:  rt charges out mod obj
+ *  Type:  Open Engine Modify Object Script
+ *  ---------------------------------------------------------------------------------------------
+ *  Author:  SMALDONA
+ *  Domain:  PROD
+ *  Creation Date:  4/17/2008 4:37:42 PM
+ *  ---------------------------------------------------------------------------------------------
+ */
+
+Set oen_reply->CONTROL_GROUP [1]->MSH [1]->processing_id->proc_id = "P"
+
+;Modify EVN Segment
+Set oen_reply->CONTROL_GROUP [1]->EVN [1]->event_type_cd = 
+    oen_reply->CONTROL_GROUP [1]->MSH [1]->message_type->messg_trigger 
+
+;Modify PID Segment
+;per Yvonne's request, adding a leading zero to MRN to make it 9 digits
+declare mrn_str = vc
+declare mrn_val = vc
+set mrn_str = fillstring(9, " ")
+set mrn_val = oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_ext->id
+if(mrn_val != "")
+set mrn_str = format(mrn_val, "#########; P0")
+ Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_ext->id = mrn_str
+endif
+
+/*end adding leading zeros*/
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_ext->check_digit = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_ext->check_digit_scheme = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_ext->assign_auth->name_id = "ST1A"
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_ext->type_cd = "PE"
+set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_ext->assign_fac_id->name_id =""
+
+
+;per Yvonne's request, adding a leading zero to MRN to make it 9 digits
+declare mrn_str2 = vc
+declare mrn_val2 = vc
+set mrn_str2 = fillstring(9, " ")
+set mrn_val2= oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->id 
+if(mrn_val2 != "" )
+set mrn_str2 = format(mrn_val, "#########; P0")
+ Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->id =  mrn_str2
+endif
+
+/*end adding leading zeros*/
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->check_digit = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->check_digit_scheme = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->assign_auth->name_id = "ST1A"
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->type_cd = "MR"
+set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->assign_fac_id->name_id =""
+
+
+;per Yvonne's request, adding a leading zero to FIN to make it 10 digits
+declare fin_str = vc
+declare fin_val = vc
+set fin_str = fillstring(10, " ")
+set fin_val= oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_account_nbr->id 
+if(fin_val != "" )
+set fin_str = format(fin_val, "##########; P0")
+ Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_account_nbr->id =  fin_str
+endif
+
+set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_account_nbr->assign_auth->name_id =""
+set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_account_nbr->type_cd = ""
+set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_account_nbr->assign_fac_id->name_id = ""
+
+/*replacing this code with alterlist command
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_alias [1]->last_name = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_alias [1]->first_name = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_alias [1]->middle_name = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_alias [1]->suffix = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_alias [1]->prefix = ""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_alias [1]->degree =""
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_alias [1]->name_type_cd =  ""
+*/
+set stat = alterlist(oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_alias,0)
+
+set charge_size = size(oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP, 5)
+ for(x=1 to charge_size)
+   set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->dept_code->identifier = "RT"
+   set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->dept_code->text = ""
+   set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->dept_code->coding_system =""
+   set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->dept_code->alt_identifier =""
+   set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->dept_code->alt_text =""
+   set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->dept_code->alt_coding_system = ""
+;blank price fields ft1;11 and ft1;12
+set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->trans_amount_ext->price->quantity=""
+set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->trans_amount_unit->price->quantity="" 
+
+/* Copy Attending Doctor into Physician Ordered by field: FT1;21  c13805*/
+
+set facility="CNMC_ORG_DOC_NUMBER"
+set id_type="DOCNBR"
+set att_size=size(oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PV1 [1]->attending_doc,5)
+
+for (j=1 to att_size)
+    if (oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PV1 [1]->attending_doc [j]->id_type=id_type)
+        if (oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PV1 [1]->attending_doc [j]->assign_auth->name_id = facility)
+
+	;copy attending phys into ordered by field in FT1;21
+	if(oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PV1 [1]->attending_doc [j]->id_nbr !="")
+	    set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->ordered_by_code [1]->id_nbr =
+ 	         	oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PV1 [1]->attending_doc [j]->id_nbr
+	    set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->ordered_by_code [1]->last_name =
+	          oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PV1 [1]->attending_doc [j]->last_name
+	    set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->ordered_by_code [1]->first_name =
+	          oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PV1 [1]->attending_doc [j]->first_name
+	    set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->ordered_by_code [1]->middle_name =
+	          oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PV1 [1]->attending_doc [j]->middle_name
+	endif 
+        endif
+    endif
+endfor
+
+
+
+;blank FT1;25 and PR1 segment -this is for pre processor charges
+  if(oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->proc_code->identifier != "")
+    set oen_reply->PERSON_GROUP [1]->FIN_GROUP [1]->FT1_GROUP [x]->FT1->proc_code->identifier = ""
+  endif
+  if(size(oen_reply->PERSON_GROUP [1]->FIN_GROUP[1]->FT1_GROUP [x]->PR1_GROUP,5) >0)
+   set stat = alterlist(oen_reply->PERSON_GROUP [1]->FIN_GROUP[1]->FT1_GROUP [x]->PR1_GROUP, 0)
+endif
+endfor

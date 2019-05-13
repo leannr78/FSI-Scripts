@@ -1,0 +1,93 @@
+/*  ---------------------------------------------------------------------------------------------
+ *  Script Name:  ORM_HSC_IN_MOBJ
+ *  Description:  Scripting for HSC inbound orders interface
+ *  Type:  Open Engine Modify Object Script
+ *  ---------------------------------------------------------------------------------------------
+ *  Author:  LCROBERTS
+ *  Domain:  PRP135
+ *  Creation Date:  1/01/2017
+ *  ---------------------------------------------------------------------------------------------
+ *	Notes:
+*	OEOCFORMORM
+* 	 ""
+*/
+
+SET TRACE CALLECHO ; remove for prod
+;  ---------------------------------------------------------------------------------------------
+; Define MSH Header
+ ; ---------------------------------------------------------------------------------------------
+Set oen_reply->CONTROL_GROUP [1]->MSH [1]->sending_application = "HSC"
+Set oen_reply->CONTROL_GROUP [1]->MSH [1]->sending_facility = "HSC"
+
+;  ---------------------------------------------------------------------------------------------
+; Define PID 
+ ; ---------------------------------------------------------------------------------------------
+Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_ext->pat_id = 
+oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->pat_id 
+
+;  ---------------------------------------------------------------------------------------------
+; Define MRN  Set oen_reply->PERSON_GROUP [1]->PAT_GROUP [1]->PID [1]->patient_id_int [1]->pat_id = "99999901"
+ ; ---------------------------------------------------------------------------------------------
+SELECT  INTO  "nl:" 
+   PA.ALIAS
+   FROM ( PERSON_ALIAS  PA )
+   WHERE (pa.alias_pool_cd = 215638697.00)
+
+   DETAIL 
+   MRN = PA.ALIAS
+   WITH  NOCOUNTER
+
+   IF ( ( CURQUAL <= 0 ) ) 
+      SET NA_RANGE_NUMBER = 0
+      EXECUTE OENCPM_MSGLOG ( BUILD("Patient doesn't exist, create MRN",char(0)))
+      ;GO TO ;ENTER Sub routine to create an MRN 
+   ENDIF
+ 
+
+DECLARE SYS_ASSIGN_ALIAS  = VC WITH PERSIST
+
+SET  NA_FLAG  =  1 
+SET  NA_RETURN_NUMBER  =  0.0 
+SET  NA_RANGE_NUMBER  =  0.0 
+SET  NA_RANGE_FROM  =  0.0 
+SET  NA_RANGE_TO  =  0.0 
+SET  NA_UPDT_CNT  =  0 
+SET  NA_ALIAS_POOL_CD =     3146565.00
+SET  NA_SEQUENCE_TYPE_CD = 219392359.00
+
+SELECT  INTO  "nl:" 
+   S.NEXT_NBR
+   FROM ( ALIAS_POOL_SEQ  S )
+    WHERE (S.ALIAS_POOL_CD= NA_ALIAS_POOL_CD ) AND (S.AP_SEQ_TYPE_CD= NA_SEQUENCE_TYPE_CD )
+
+   DETAIL 
+   NA_RANGE_NUMBER =S.NEXT_NBR,
+   NA_RANGE_FROM =S.START_NBR,
+   NA_RANGE_TO =S.MAX_NBR,
+   NA_UPDT_CNT =S.UPDT_CNT
+   WITH  NOCOUNTER , FORUPDATEWAIT ( S )
+
+   IF ( ( CURQUAL <= 0 ) ) 
+      SET NA_RANGE_NUMBER = 0
+      GO TO 9999_EXIT_SUBROUTINE
+   ENDIF
+
+   IF (  (( ( NA_RANGE_NUMBER < NA_RANGE_FROM ) )  OR  (( NA_RANGE_NUMBER > NA_RANGE_TO ) ))  ) 
+      SET NA_RANGE_NUMBER = 00
+     GO TO 9999_EXIT_SUBROUTINE
+  ENDIF
+
+   IF (CURQUAL > 0)
+      UPDATE FROM ( ALIAS_POOL_SEQ  S ) 
+      SET S.NEXT_NBR= NA_RANGE_NUMBER+1 ,
+      S.UPDT_CNT=(S.UPDT_CNT+ 1 )
+      WHERE (S.ALIAS_POOL_CD= NA_ALIAS_POOL_CD ) 
+      AND (S.AP_SEQ_TYPE_CD= NA_SEQUENCE_TYPE_CD ) 
+      AND (S.UPDT_CNT= NA_UPDT_CNT )
+    WITH  NOCOUNTER 
+    COMMIT
+  ENDIF
+
+SET SYS_ASSIGN_ALIAS = CNVTSTRING(NA_RANGE_NUMBER)
+
+# 9999_EXIT_SUBROUTINE
